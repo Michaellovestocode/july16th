@@ -9,7 +9,7 @@ try:
     from bot_secrets import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 except ImportError:
     raise ImportError(
-        "secrets.py not found. Copy secrets_example.py to secrets.py and fill in "
+        "bot_secrets.py not found. Copy bot_secrets_example.py to bot_secrets.py and fill in "
         "your Telegram bot token and chat id."
     )
 
@@ -58,3 +58,33 @@ def format_result_message(symbol: str, side: str, result: str, entry: float, exi
         f"Est. P/L at {leverage}x leverage: `{leveraged_pnl:+.2f}%`\n\n"
         f"_(Estimated — actual P/L depends on your position size and fees)_"
     )
+
+
+def format_daily_summary(trades: list, for_date) -> str:
+    if not trades:
+        return (
+            f"📊 *Daily Summary — {for_date}*\n\n"
+            f"No trades closed today."
+        )
+
+    wins = [t for t in trades if t["result"] == "TP"]
+    losses = [t for t in trades if t["result"] == "SL"]
+    total_leveraged_pnl = sum(t["leveraged_pnl_pct"] for t in trades)
+
+    overall_emoji = "🟢" if total_leveraged_pnl > 0 else ("🔴" if total_leveraged_pnl < 0 else "⚪")
+    verdict = "PROFIT" if total_leveraged_pnl > 0 else ("LOSS" if total_leveraged_pnl < 0 else "BREAKEVEN")
+
+    lines = [
+        f"{overall_emoji} *Daily Summary — {for_date}*",
+        f"Overall: *{verdict}* ({total_leveraged_pnl:+.2f}% combined, leverage-adjusted)",
+        "",
+        f"Trades: {len(trades)}  |  Wins: {len(wins)}  |  Losses: {len(losses)}",
+        "",
+    ]
+
+    for t in trades:
+        emoji = "✅" if t["result"] == "TP" else "❌"
+        lines.append(f"{emoji} {t['symbol']} {t['side']} — {t['leveraged_pnl_pct']:+.2f}%")
+
+    lines.append("\n_(Estimates only — actual results depend on your real position sizing and fees)_")
+    return "\n".join(lines)
