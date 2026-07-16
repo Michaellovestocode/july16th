@@ -1,0 +1,8 @@
+bot_secrets.py
+bot_state.json
+live_bot.log
+results/*.csv
+__pycache__/
+*.pyc
+venv/
+.venv/
