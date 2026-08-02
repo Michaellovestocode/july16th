@@ -119,6 +119,19 @@ def evaluate_bar(df, i: int, symbol: str) -> Optional[Signal]:
 
     reasons.append(f"ATR {atr_pct:.2f}% of price (volatility gate passed)")
 
+    # TEST MODE: reverse direction, force 1:1 R:R
+    risk = abs(entry - sl)
+    if side == "LONG":
+        side = "SHORT"
+        sl = entry + risk
+        tp = entry - risk
+    else:
+        side = "LONG"
+        sl = entry - risk
+        tp = entry + risk
+    rr = 1.0
+    reasons.append("⚠️ TEST MODE: signal reversed, forced 1:1 R:R")
+
     return Signal(
         symbol=symbol,
         side=side,
